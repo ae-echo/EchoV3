@@ -1,3 +1,7 @@
+/Debug/
+/.settings/
+/Drivers/
+
 # Prerequisites
 *.d
 
