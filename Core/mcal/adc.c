@@ -76,12 +76,12 @@ void MX_ADC1_Init(void)
 uint32_t ADC_Get_ADC(uint16_t* adcDelay)
 {
 
-	          uint32_t value ;
-	          HAL_ADC_Start(&hadc1);
-	    	  HAL_ADC_PollForConversion(&hadc1, adcDelay);
-	    	  value = HAL_ADC_GetValue(&hadc1);
-	    	  HAL_ADC_Stop(&hadc1);
-	    	  return  value;
+	  uint32_t value ;
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, adcDelay);
+	  value = HAL_ADC_GetValue(&hadc1);
+	  HAL_ADC_Stop(&hadc1);
+	  return  value;
 
 }
 

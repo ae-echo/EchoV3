@@ -23,9 +23,9 @@
 /* USER CODE BEGIN Includes */
 #include "fmc.h" // this file is copyed previus project. echo yellow
 #include "gpio.h"
-#include "uart.h";
-#include "adc.h";
-#include "dac.h";
+#include "uart.h"
+#include "adc.h"
+#include "dac.h"
 #include "ldo.h"
 #include "i2c.h"
 #include "i3c.h"
@@ -33,6 +33,7 @@
 #include "ssd1306_conf.h"
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
+#include "flash.h"
 
 #include "hw_Test_Com.h"   //this file about common test  you can refer to dev
 #include "bsw_config.h"
@@ -96,9 +97,6 @@ void MX_FMC_Init(void);
 
 uint32_t key_stable;
 
-
-
-
 /* USER CODE END 0 */
 
 /**
@@ -107,7 +105,7 @@ uint32_t key_stable;
   */
 int main(void)
 {
-
+//  SCB->VTOR = 0x08020000;
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -176,6 +174,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  HAL_Delay(1000);
+	  PRINTF(("Firmware Version 01\n"));
+//	  if(count > 10)
+//	  {
+//		jump_vector_table();
+//	  }
+//	  count++;
 //	    UART_Communication_Stable();  // if you don't need this you can delete it is for stable uart.
 //
 //

@@ -8,10 +8,11 @@
 #include <stdint.h>
 #include "uart.h"
 
-#define PRINTF(s)		UARTx_Printf s
+#define PRINTF(...) UARTx_Printf(__VA_ARGS__)
 
 extern bool g_print_debug;
 
-int _printf(const char *fmt, ...);
+int UARTx_Printf(const char *fmt, ...);
+
 
 #endif
