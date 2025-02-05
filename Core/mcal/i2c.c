@@ -67,8 +67,11 @@ void HW_I2C_Scan(I2C_HandleTypeDef* hi2c, uint8_t timeout)
 
 
 
-void HW_I2C_Slave(void)
+void I2C_RxCallback(I2C_HandleTypeDef* hi2c)
 {
+	uint8_t Addr, Data;
+	uint32_t tmp1 = 0, tmp2 = 0, tmp3 = 0, tmp4 = 0;
+
 	uint8_t RX_Buffer [1] ;
 	HAL_I2C_Slave_Receive_IT(&hi2c2 ,(uint8_t *)RX_Buffer, 1);
 }
@@ -480,7 +483,7 @@ void I2C2_ER_IRQHandler(void)
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     if (hi2c->Instance == I2C2) {
 
-    	 HW_I2C_Slave();
+    	I2C_RxCallback(hi2c);
         // 수신 데이터 처리
         //Process_Received_Data(rx_buffer, sizeof(rx_buffer));
     }

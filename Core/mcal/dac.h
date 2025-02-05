@@ -16,17 +16,9 @@
 
 extern DAC_HandleTypeDef hdac1;
 
-
-
-
 void MX_DAC1_Init(void);
 void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac);
 void HAL_DAC_MspInit(DAC_HandleTypeDef* hdac);
-
-
-
-
-
 
 void DAC_Out(uint32_t* ch, uint32_t* value);   //
 /*

@@ -150,19 +150,16 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
 
   HW_I2C_Slave();
-  LDO_controldown(5,64);
-  LDO_controlup(5,33) ;
-  LDO_controldown(1,64);
-  LDO_controldown(2,64);
-  HAL_Delay(100);
 
   MX_I3C1_Init();   // the init need to set  LDO_controldown(5,64); LDO_controlup(5,33) ;  with  delay
 
 
   oLed_Init();  // you need to keep this logic
 
+  LDO_ControlMain(EXT_PW_OUT_CH1 , 13);
   PRINTF(("ECHO V3 TestCode\n"));
-
+  int count =0;
+  bool check = true;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -174,31 +171,25 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  HAL_Delay(1000);
-	  PRINTF(("Firmware Version 01\n"));
-//	  if(count > 10)
-//	  {
-//		jump_vector_table();
-//	  }
-//	  count++;
-//	    UART_Communication_Stable();  // if you don't need this you can delete it is for stable uart.
-//
-//
-//	  	if (USER_KEY==0 )  // this is for key test.
-//		{
-//			if (key_stable==0)
-//			{
-//				LED2_TOG;
-//				key_stable = 1;
-//				uint8_t ledinf=LED2_STATE;
-//				char send_data[]={0xAE,0x02,0xFD,0xff,ledinf};
-//				UART1_Send(send_data, 5);
-//
-//			}
-//		}
-//	  	if(USER_KEY==1)key_stable=0;
 
-
-
+	PRINTF(("TEST...\n"));
+	if(count > 10)
+	{
+		if(check == true)
+		{
+			PRINTF(("1.5V\n"));
+			LOD_SetVoltage(EXT_PW_OUT_CH1, 1.5);
+			check = false;
+		}
+		else if(check == false)
+		{
+			PRINTF(("3.3V\n"));
+			LOD_SetVoltage(EXT_PW_OUT_CH1, 3.3);
+			check = true;
+		}
+		count = 0;
+	}
+	count++;
 
 
   }

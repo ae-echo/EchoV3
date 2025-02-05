@@ -73,16 +73,6 @@ extern SDRAM_HandleTypeDef hsdram2;
 #define FMC_SDRAM_BLOCK_6     	((uint32_t)0x00400000) /* SDRAM Block 6 - 512 Kbyte */
 #define FMC_SDRAM_BLOCK_7     	((uint32_t)0x00480000) /* SDRAM Block 7 - 512 Kbyte */
 
-
-//#define FMC_SDRAM_BLOCK_0     	((uint32_t)0xD0080000) /* SDRAM Block 0 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_1     	((uint32_t)0xD0100000) /* SDRAM Block 1 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_2     	((uint32_t)0xD0180000) /* SDRAM Block 2 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_3     	((uint32_t)0xD0200000) /* SDRAM Block 3 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_4     	((uint32_t)0xD0280000) /* SDRAM Block 4 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_5     	((uint32_t)0xD0380000) /* SDRAM Block 5 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_6     	((uint32_t)0xD0400000) /* SDRAM Block 6 - 512 Kbyte */
-//#define FMC_SDRAM_BLOCK_7     	((uint32_t)0xD0480000) /* SDRAM Block 7 - 512 Kbyte */
-
 enum
 {
     FMC_OK = 0,

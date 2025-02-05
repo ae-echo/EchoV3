@@ -63,7 +63,6 @@
 #define ADDR_FLASH_SECTOR_22 ((uint32_t)0x081C0000) /* Base @ of Sector 10, 128 Kbytes */
 #define ADDR_FLASH_SECTOR_23 ((uint32_t)0x081E0000) /* Base @ of Sector 11, 128 Kbytes */
 
-//25-02-04  flash Sector 검증 필요
 #define FLASH_WRP_SECTORS		(OB_WRP_SECTOR_4TO7 | OB_WRP_SECTOR_8TO11)
 
 #define DATA_32                 ((uint32_t)0x87654321)
@@ -89,8 +88,25 @@ enum
     FLASH_FAIL = 1
 };
 
+//Public
 uint32_t Flash_GetSector(uint32_t Address);
 uint32_t Flash_GetBank(uint32_t Addr);
 void Flash_JumpVectorTable(void);
+
+//Private
+HAL_StatusTypeDef WriteFlash();
+HAL_StatusTypeDef EraseFlash();
+HAL_StatusTypeDef ReadFlash();
+HAL_StatusTypeDef EnableWriteProtect();
+HAL_StatusTypeDef DisableWriteProtect();
+uint32_t Flash_Write(void);
+uint32_t* Flash_Read(void);
+uint32_t Flash_SetConfig(uint32_t Size, uint8_t* pBuf);
+uint32_t Flash_GetConfig(uint32_t Size, uint8_t* pBuf);
+uint8_t Flash_Get_CheckSum(void);
+uint8_t Flash_Write_Fw(uint32_t Size);
+
+
+
 
 #endif /* MCAL_FLASH_H_ */

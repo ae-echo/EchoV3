@@ -42,20 +42,35 @@ typedef GPIO_TypeDef GPIO_Port1;
  */
 
 
+#define STEPMAX		64
+#define STEMMIN		0
+
+#include "time.h"
+#include <math.h>
+
+typedef enum
+{
+	EXT_PW_OUT_CH1 = 0,
+	EXT_PW_OUT_CH2,
+	SW_I2C_REF_PW_CH1,
+	SW_I2C_REF_PW_CH2,
+	I3C_REF_PW
+} LDO_Select;
 
 
+//Public
+void LDO_ControlMain(LDO_Select LDO,uint8_t Step);
+void LOD_SetVoltage(LDO_Select LDO, float Voltage);
+float LDO_GetVoltage(uint8_t Step);
+uint8_t LDO_GetStep(float Inputvoltage);
 
 
-void ldoUd(uint32_t type, uint8_t pow);
-void ldoCs(uint32_t type, uint8_t pow);
-void ldoEn(uint32_t type, uint8_t pow);
-
-
-void LDO_controlup(uint32_t LDO,uint8_t count);
-void LDO_controldown(uint32_t LDO,uint8_t count);
-void LDO_ControlMain(uint32_t LDO,uint8_t count);
-uint8_t LDO_Votage(uint8_t count);// MCP4011 : 0.78125+....     =((0.78125+3)*200/((0.78125+3)+200)+10)/10*0.8  you can apply c# and oled
-
+//Private
+void ldoUd(LDO_Select type, GPIO_State PinStatus);
+void ldoCs(LDO_Select type, GPIO_State PinStatus);
+void ldoEn(LDO_Select type, GPIO_State PinStatus);
+void LDO_controlup(LDO_Select LDO,uint8_t Step);
+void LDO_controldown(LDO_Select LDO,uint8_t Step);
 
 
 #endif /* MCAL_LDO_H_ */

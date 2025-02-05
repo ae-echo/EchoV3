@@ -18,6 +18,13 @@ TIM_HandleTypeDef htim7;
   * @retval None
   */
 
+void delay_us(volatile uint32_t delay)
+{
+  for (volatile int i = 0; i < delay; i++)
+    for (volatile int j = 0; j < 25; j++)
+      ;
+}
+
 void MX_TIM6_Init(void)
 {
 

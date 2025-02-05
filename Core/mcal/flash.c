@@ -45,7 +45,7 @@ HAL_StatusTypeDef WriteFlash()
         }
         else
         {
-          uint32_t errorcode = HAL_FLASH_GetError();
+          //uint32_t errorcode = HAL_FLASH_GetError();
           return HAL_ERROR;
         }
     }
@@ -76,7 +76,7 @@ HAL_StatusTypeDef EraseFlash()
 
     if(HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError) != HAL_OK)
     {
-		uint32_t errorcode = HAL_FLASH_GetError();
+		//uint32_t errorcode = HAL_FLASH_GetError();
 		return HAL_ERROR;
     }
 

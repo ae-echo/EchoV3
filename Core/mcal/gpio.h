@@ -171,12 +171,8 @@ void GPIO_Toggle(GPIO_Port *port, uint16_t pin);
 
 uint8_t GPIO_GetOutputState(GPIO_TypeDef *port, uint16_t pin);
 
-
-
 // GPIO Port 가져오기
 GPIO_Port* GPIO_GetPort(GPIO_PortName portName);
-
-void key_Test();
 
 
 

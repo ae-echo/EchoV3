@@ -45,25 +45,21 @@ void UARTx_SetDbg(bool set)
 */
 int UARTx_Printf(const char *fmt, ...)
 {
-	g_print_debug = 1;
+    g_print_debug = 1;
 
-	if(g_print_debug)
-	{
-		int  i;
-		va_list parm;
-		char szBuf[256];
-		va_start(parm, fmt);
-		vsprintf(szBuf, fmt, parm);
+    if (g_print_debug)
+    {
+        va_list parm;
+        char szBuf[256];
 
-		for(i = 0; i < 256 && szBuf[i] /* != null */; i++)
-		{
-			HAL_UART_Transmit(&huart5, (uint8_t*)&szBuf[i], 1, 1);
-		}
+        va_start(parm, fmt);
+        vsnprintf(szBuf, sizeof(szBuf), fmt, parm); // ✅ vsnprintf()로 변경하여 float 지원 가능
+        va_end(parm);
 
-		va_end(parm);
-	}
+        HAL_UART_Transmit(&huart5, (uint8_t*)szBuf, strlen(szBuf), HAL_MAX_DELAY); // ✅ 버퍼 전체 전송
+    }
 
-	return 0;
+    return 0;
 }
 
 uart* UARTx_GetInfo(UART_Number uartNum)
