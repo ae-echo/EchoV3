@@ -43,23 +43,44 @@ void UARTx_SetDbg(bool set)
 *	 Func    : int _printf(const char *fmt, ...)
 *  Comment : UART printf must set print debug option
 */
-int UARTx_Printf(const char *fmt, ...)
+//int UARTx_Printf(const char *fmt, ...)
+int UARTx_Printf(const char *file, int line, const char *fmt, ...)
+
 {
-    g_print_debug = 1;
+	g_print_debug = 1;
 
-    if (g_print_debug)
-    {
-        va_list parm;
-        char szBuf[256];
+	if (g_print_debug)
+	{
+		va_list args;
+		char buffer[256];
 
-        va_start(parm, fmt);
-        vsnprintf(szBuf, sizeof(szBuf), fmt, parm); // ✅ vsnprintf()로 변경하여 float 지원 가능
-        va_end(parm);
+		va_start(args, fmt);
+		vsnprintf(buffer, sizeof(buffer), fmt, args);
+		va_end(args);
 
-        HAL_UART_Transmit(&huart5, (uint8_t*)szBuf, strlen(szBuf), HAL_MAX_DELAY); // ✅ 버퍼 전체 전송
-    }
+		// 파일명과 라인번호를 추가하여 출력
+		char logBuffer[300];
+		snprintf(logBuffer, sizeof(logBuffer), "[%s:%d] %s", file, line, buffer);
 
+		HAL_UART_Transmit(&huart5, (uint8_t*)logBuffer, strlen(logBuffer), HAL_MAX_DELAY);
+	}
     return 0;
+
+//    g_print_debug = 1;
+//
+//    if (g_print_debug)
+//    {
+//        va_list parm;
+//        char szBuf[256];
+//
+//        va_start(parm, fmt);
+//        vsnprintf(szBuf, sizeof(szBuf), fmt, parm); // ✅ vsnprintf()로 변경하여 float 지원 가능
+//        va_end(parm);
+//
+//        HAL_UART_Transmit(&huart5, (uint8_t*)szBuf, strlen(szBuf), HAL_MAX_DELAY); // ✅ 버퍼 전체 전송
+//    }
+//
+//    return 0;
 }
 
 uart* UARTx_GetInfo(UART_Number uartNum)

@@ -149,17 +149,25 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7);
   HAL_TIM_Base_Start_IT(&htim6);
 
-  HW_I2C_Slave();
+  CH1_I2C_SEL(1);
+
+  //LDO_controldown(I3C_REF_PW,64);
+  //LDO_controlup(I3C_REF_PW,20) ;
+  LDO_ControlMain(I3C_REF_PW,20);
+  LDO_controldown(EXT_PW_OUT_CH1,64);
+  LDO_controldown(EXT_PW_OUT_CH2,64);
+  PRINTF(("ECHO V3 TestCode\n"));
 
   MX_I3C1_Init();   // the init need to set  LDO_controldown(5,64); LDO_controlup(5,33) ;  with  delay
 
 
   oLed_Init();  // you need to keep this logic
 
-  LDO_ControlMain(EXT_PW_OUT_CH1 , 13);
-  PRINTF(("ECHO V3 TestCode\n"));
+
+  I2C_Init();
   int count =0;
   bool check = true;
+  uint8_t byte[5] = {0x01,0x02,0x03,0x04,0x05};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -173,23 +181,26 @@ int main(void)
 	  HAL_Delay(1000);
 
 	PRINTF(("TEST...\n"));
-	if(count > 10)
-	{
-		if(check == true)
-		{
-			PRINTF(("1.5V\n"));
-			LOD_SetVoltage(EXT_PW_OUT_CH1, 1.5);
-			check = false;
-		}
-		else if(check == false)
-		{
-			PRINTF(("3.3V\n"));
-			LOD_SetVoltage(EXT_PW_OUT_CH1, 3.3);
-			check = true;
-		}
-		count = 0;
-	}
-	count++;
+	DAC_Out(FRA_CH_A, 1000);
+	DAC_Out(FRA_CH_A, 2000);
+
+//	if(count > 10)
+//	{
+//		if(check == true)
+//		{
+//			PRINTF(("1.5V\n"));
+//			LOD_SetVoltage(EXT_PW_OUT_CH1, 1.5);
+//			check = false;
+//		}
+//		else if(check == false)
+//		{
+//			PRINTF(("3.3V\n"));
+//			LOD_SetVoltage(EXT_PW_OUT_CH1, 3.3);
+//			check = true;
+//		}
+//		count = 0;
+//	}
+//	count++;
 
 
   }

@@ -9,203 +9,29 @@
 #include "i2c.h"
 #include "gpio.h"
 #include "uart.h"
-
+#include "bsw_config.h"
 
 I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c4;
 
+//struct I2C_PortSet		I2C_Port;
+struct I2C_Irq_Buf	    I2C_Buf;
 
+uint8_t LastTransferDirection = 0; // 마지막 전송 방향 저장 변수
 
-
-
-void SET_I2C_Speed(void)
+void I2C_Init(void)
 {
+    I2C_Buf.TxCnt = 255;
+    for(int i = 0; i<255; i++)
+    {
+        I2C_Buf.TxBuf[i] = i;
+    }
 
+    if (HAL_I2C_EnableListen_IT(&hi2c2) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
-
-void SW_I2C_Read(void)
-{
-
-}
-
-void SW_I2C_Write(void)
-{
-
-}
-
-void HW_I2C_Write(void)
-{
-
-	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
-}
-
-void HW_I2C_Read(void)
-{
-	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
-	//HAL_I2C_Master_Receive_IT(&hi2c, DevAddress, pData, Size);
-	//HAL_I2C_Master_Receive_IT(hi2c, DevAddress, pData, Size);
-	//HAL_I2C_Slave_Receive_IT(&hi2c1 ,(uint8_t *)RX_Buffer, 1);
-}
-
-
-
-
-
-void HW_I2C_Scan(I2C_HandleTypeDef* hi2c, uint8_t timeout)
-{
-	 for (uint8_t address = 1; address < 128; address++) // I2C 주소 범위: 0x01 ~ 0x7F
-	 {
-		  HAL_StatusTypeDef result =HAL_I2C_IsDeviceReady(hi2c, (address << 1), 1, timeout);
-
-		  if(result== HAL_OK)
-		  {
-			  uint8_t buffer[]={0xAE,0x06,0xf9,0xfe,address};
-			   UART1_Send(buffer, 5);
-		  }
-	 }
-}
-
-
-
-void I2C_RxCallback(I2C_HandleTypeDef* hi2c)
-{
-	uint8_t Addr, Data;
-	uint32_t tmp1 = 0, tmp2 = 0, tmp3 = 0, tmp4 = 0;
-
-	uint8_t RX_Buffer [1] ;
-	HAL_I2C_Slave_Receive_IT(&hi2c2 ,(uint8_t *)RX_Buffer, 1);
-}
-
-
-
-
-
-static void I2C_SDA(uint8_t ch,uint8_t state)
-{
-	switch (ch)
-	{
-	case 1:
-		CH1_I2C_SDA(state);
-
-		break;
-	case 2:
-		CH2_I2C_SDA(state);
-		break;
-
-	}
-}
-
-static void I2C_SCL(uint8_t ch,uint8_t state)
-{
-	switch (ch)
-		{
-		case 1:
-			CH1_I2C_SCL(state);
-
-			break;
-		case 2:
-			CH2_I2C_SCL(state);
-			break;
-
-		}
-}
-
-uint8_t I2C_SDA_Read(uint8_t ch)
-{
-	switch (ch)
-			{
-			case 1:
-				return CH1_I2C_SDA_READ;
-
-				break;
-			case 2:
-				return CH2_I2C_SDA_READ;
-				break;
-
-			}
-
-}
-static void asm_delay(void)
-{
-    __asm volatile("NOP");
-    	//__asm volatile("NOP");
-    	//__asm volatile("NOP");
-    //	__asm volatile("NOP");
-    //	__asm volatile("NOP");
-}
-
-
-uint8_t SW_I2C_ACK(uint8_t data, uint8_t ch ,uint8_t time)
-{
-	uint8_t ack;
-	I2C_SDA(ch, 1);
-	I2C_SCL(ch, 1);
-	I2C_Delay(time);
-	I2C_SDA(ch, 0);
-	I2C_Delay(time);
-	I2C_SCL(ch, 0);
-
-
-	for (int i = 0; i < 8; i++)
-	{
-		if (data & 0x80) {
-			I2C_SDA(ch,1 );
-		} else {
-			I2C_SDA(ch, 0);
-		}
-		data <<= 1;
-		I2C_Delay(time);
-		I2C_SCL(ch, 1); // 클럭 상승
-		I2C_Delay(time);
-		I2C_SCL(ch, 0); // 클럭 하강
-		asm_delay();
-	}
-
-	// ACK/NACK 확인
-
-	I2C_SDA(ch,1); // SDA를 입력으로 설정
-	I2C_Delay(time);
-	I2C_SCL(ch, 1); // 클럭 상승
-
-	I2C_Delay(time);
-	ack = I2C_SDA_Read(ch); // ACK: LOW, NACK: HIGH
-	I2C_SCL(ch,0 ); // 클럭 하강
-
-	I2C_SDA(ch,0  );
-	I2C_Delay(time);
-	I2C_SCL(ch, 1); // 클럭 상승
-	I2C_Delay(time);
-	I2C_SDA(ch, 1 );
-	return ack;
-
-
-}
-
-void SW_I2C_Scan(uint8_t ch ,uint8_t time)
-{
-	 for (uint8_t address = 1; address < 128; address++) // I2C 주소 범위: 0x01 ~ 0x7F
-		 {
-			 uint8_t result =SW_I2C_ACK((address << 1),  ch ,time);
-
-			  if(result== 0)
-			  {
-				  uint8_t buffer[]={0xAE,0x06,0xf9,0xfe,address};
-				  UART1_Send(buffer, 5);
-			  }
-			  I2C_Delay(10);
-		 }
-}
-
-void I2C_Delay(uint32_t delay)
-{
-  for (volatile int i = 0; i < delay; i++)
-    for (volatile int j = 0; j < 25; j++)
-      ;
-}
-
-
-
-
 
 
 
@@ -226,7 +52,7 @@ void MX_I2C2_Init(void)
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
   hi2c2.Init.Timing = 0x00C035A6;
-  hi2c2.Init.OwnAddress1 = 128;
+  hi2c2.Init.OwnAddress1 = 36;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c2.Init.OwnAddress2 = 0;
@@ -280,7 +106,7 @@ void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0x60808CD3;
+  hi2c4.Init.Timing = 0x00C035A6;//0x00C035A6;//0x60808CD3;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -346,7 +172,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -382,8 +208,8 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     PD13     ------> I2C4_SDA
     */
     GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C4;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -479,14 +305,92 @@ void I2C2_ER_IRQHandler(void)
   /* USER CODE END I2C2_ER_IRQn 1 */
 }
 
+void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+}
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-    if (hi2c->Instance == I2C2) {
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+}
 
-    	I2C_RxCallback(hi2c);
-        // 수신 데이터 처리
-        //Process_Received_Data(rx_buffer, sizeof(rx_buffer));
+void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+
+	if (hi2c->Instance == I2C2)
+    {
+		I2C_Buf.RegAddr = I2C_Buf.RxBuf[0];
+        memset(I2C_Buf.RxBuf, 0, sizeof(I2C_Buf.RxBuf));
+
+        HAL_I2C_EnableListen_IT(hi2c);
     }
 }
 
+void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
+{
 
+    if (hi2c->Instance == I2C2)
+    {
+        if (AddrMatchCode != hi2c->Init.OwnAddress1)
+        {
+            // 잘못된 주소 요청 → NACK 전송
+            hi2c->Instance->CR2 |= I2C_CR2_NACK;
+            return;
+        }
+
+        // 마지막 전송 방향 저장
+        LastTransferDirection = TransferDirection;
+
+        // 기존 처리 로직...
+        if (TransferDirection == I2C_DIRECTION_TRANSMIT) // Master가 Write 요청
+        {
+            HAL_I2C_Slave_Seq_Receive_IT(hi2c, I2C_Buf.RxBuf, sizeof(I2C_Buf.RxBuf), I2C_NEXT_FRAME);
+        }
+        else if (TransferDirection == I2C_DIRECTION_RECEIVE) // Master가 Read 요청
+        {
+            HAL_I2C_Slave_Seq_Transmit_IT(hi2c, &I2C_Buf.TxBuf[I2C_Buf.RegAddr], sizeof(I2C_Buf.TxBuf), I2C_NEXT_FRAME);
+        }
+    }
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+{
+	HAL_I2C_EnableListen_IT(hi2c);
+}
+
+/*
+ *
+void SET_I2C_Speed(void)
+{
+
+}
+
+void SW_I2C_Read(void)
+{
+
+}
+
+void SW_I2C_Write(void)
+{
+
+}
+
+void HW_I2C_Write(void)
+{
+
+	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
+}
+
+void HW_I2C_Read(void)
+{
+	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
+	//HAL_I2C_Master_Receive_IT(&hi2c, DevAddress, pData, Size);
+	//HAL_I2C_Master_Receive_IT(hi2c, DevAddress, pData, Size);
+	//HAL_I2C_Slave_Receive_IT(&hi2c1 ,(uint8_t *)RX_Buffer, 1);
+}
+
+
+
+
+ *
+ *
+ * */

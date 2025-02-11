@@ -16,6 +16,17 @@ extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c4;
 extern GPIO_TypeDef *I2C_BASS;
 
+struct I2C_Irq_Buf
+{
+	uint8_t RxBuf[255];
+	uint8_t TxBuf[255];
+	uint8_t RegAddr;
+	uint8_t RxCnt;
+	uint8_t TxCnt;
+};
+
+
+void I2C_Init(void);
 
 /*
  *  set about gpio.c
