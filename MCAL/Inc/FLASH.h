@@ -1,12 +1,5 @@
-/*
- * flash.h
- *
- *  Created on: Feb 3, 2025
- *      Author: JungBongJun
- */
-
-#ifndef MCAL_FLASH_H_
-#define MCAL_FLASH_H_
+#ifndef INC_FLASH_H_
+#define INC_FLASH_H_
 
 #include "main.h"
 #include "bsw_config.h"
@@ -88,25 +81,45 @@ enum
     FLASH_FAIL = 1
 };
 
-//Public
+
+/**
+ * @brief  주어진 Flash 메모리 주소(Address)가 속한 섹터 번호를 반환
+ * @param  Address  Flash 메모리 내 확인할 주소
+ * @retval 해당 주소가 속한 섹터 번호 (0~23)
+ *         주소가 유효하지 않으면 0xFFFFFFFF 반환
+ */
 uint32_t Flash_GetSector(uint32_t Address);
+
+/**
+ * @brief  Gets the bank of a given address
+ * @param  Addr: Address of the FLASH Memory
+ * @retval The bank of a given address
+ */
 uint32_t Flash_GetBank(uint32_t Addr);
-void Flash_JumpVectorTable(void);
 
-//Private
-HAL_StatusTypeDef WriteFlash();
-HAL_StatusTypeDef EraseFlash();
-HAL_StatusTypeDef ReadFlash();
-HAL_StatusTypeDef EnableWriteProtect();
-HAL_StatusTypeDef DisableWriteProtect();
-uint32_t Flash_Write(void);
-uint32_t* Flash_Read(void);
-uint32_t Flash_SetConfig(uint32_t Size, uint8_t* pBuf);
-uint32_t Flash_GetConfig(uint32_t Size, uint8_t* pBuf);
-uint8_t Flash_Get_CheckSum(void);
-uint8_t Flash_Write_Fw(uint32_t Size);
+/**
+ * @brief  주어진 펌웨어 데이터를 Flash 메모리에 기록하는 함수
+ * @param  fwData        Flash에 기록할 펌웨어 데이터 버퍼 (uint8_t 배열)
+ * @param  flashAddress  Flash 메모리에 기록을 시작할 주소
+ * @param  Size          기록할 데이터 크기 (바이트 단위)
+ * @retval FLASH_OK(0) 또는 FLASH_FAIL(1) (기록 성공/실패 여부)
+ */
+int Flash_Write_Fw(uint8_t* fwData, uint32_t flashAddress, uint32_t size);
+
+/**
+ * @brief  지정된 Flash 주소에서 애플리케이션을 실행하는 함수 (부트 점프)
+ * @param  startAddress  애플리케이션의 벡터 테이블 시작 주소
+ * @note   현재 실행 중인 펌웨어에서 지정된 애플리케이션 영역으로 점프
+ */
+void Flash_JumpVectorTable(uint32_t startAddress);
+
+/**
+ * @brief  지정된 Flash 영역을 삭제하는 함수
+ * @param  areaAddress  삭제할 영역의 시작 주소
+ * @param  dataSize     삭제할 데이터 크기 (바이트 단위)
+ * @note   지정된 크기에 해당하는 섹터 단위로 삭제 수행
+ */
+void Flash_Erase(uint32_t areaAddress, uint32_t dataSize);
 
 
-
-
-#endif /* MCAL_FLASH_H_ */
+#endif /* INC_FLASH_H_ */

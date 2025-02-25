@@ -81,7 +81,6 @@ void HAL_MspInit(void)
 
 
 
-
 /**
 * @brief DCACHE MSP Initialization
 * This function configures the hardware resources used in this example
@@ -126,9 +125,6 @@ void HAL_DCACHE_MspDeInit(DCACHE_HandleTypeDef* hdcache)
   }
 
 }
-
-
-
 
 
 /* USER CODE BEGIN 1 */

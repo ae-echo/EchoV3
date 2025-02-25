@@ -1,8 +1,26 @@
 #include "bsw_config.h"
+#include "Comport.h"
 
 bool g_print_debug = true;
 
+void Com_Init(COM_Handle* pCom)
+{
+//	pCom->bOpen = TRUE;
+//	pCom->bExtSendMask = FALSE;
+//
+//	/* Com Packet struct Init --------- */
+//	memset( &pCom->Tx, 0x00, COM_PACKET_SIZE);
+//	pCom->Tx.Start = 0xAE;
+//	pCom->Tx.ID = 0xFA;
+//	pCom->Tx.End = 0xEC;
+//
+//	pCom->pRx = NULL;
+}
 
+void Com_Recv(COM_Handle* pCom)
+{
+
+}
 
 void UARTx_Send(UART_Number uartNum, uint8_t* pBuf, uint32_t nSize)
 {
@@ -65,22 +83,6 @@ int UARTx_Printf(const char *file, int line, const char *fmt, ...)
 		HAL_UART_Transmit(&huart5, (uint8_t*)logBuffer, strlen(logBuffer), HAL_MAX_DELAY);
 	}
     return 0;
-
-//    g_print_debug = 1;
-//
-//    if (g_print_debug)
-//    {
-//        va_list parm;
-//        char szBuf[256];
-//
-//        va_start(parm, fmt);
-//        vsnprintf(szBuf, sizeof(szBuf), fmt, parm); // ✅ vsnprintf()로 변경하여 float 지원 가능
-//        va_end(parm);
-//
-//        HAL_UART_Transmit(&huart5, (uint8_t*)szBuf, strlen(szBuf), HAL_MAX_DELAY); // ✅ 버퍼 전체 전송
-//    }
-//
-//    return 0;
 }
 
 uart* UARTx_GetInfo(UART_Number uartNum)

@@ -5,19 +5,9 @@
  *      Author: Kim Min Ki
  */
 
-#include "dac.h"
-
-
+#include <dac.h>
 
 DAC_HandleTypeDef hdac1;
-
-
-
-//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095/2);
-//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 4095);
-
-//HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-//HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
 
 
 /**
@@ -25,8 +15,6 @@ DAC_HandleTypeDef hdac1;
   * @param None
   * @retval None
   */
-
-
 void MX_DAC1_Init(void)
 {
 
@@ -80,24 +68,6 @@ void MX_DAC1_Init(void)
 
 }
 
-
-void DAC_Out(uint32_t* ch, uint32_t* value)
-{
-
-    if(ch == 1)
-    {
-        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R,value);
-    }
-    else if(ch == 2)
-    {
-        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, value);
-    }
-    else
-    {
-        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
-        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, value);
-    }
-}
 
 /**
 * @brief DAC MSP Initialization

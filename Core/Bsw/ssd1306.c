@@ -12,17 +12,20 @@ void ssd1306_test()   // you can refered     :   ->   void oLed_Init(void);
 {
 
 			char mytext[]="     I/O   POW   MODE";
-			char mytext1[]="CH1  2.9V  2.5V  EX";
-			char mytext2[]="CH2  2.9V  3.3V  IN";
+			char mytext1[]="CH1  2.8V  2.5V  EX";
+			char mytext2[]="CH2  2.9V  3.1V  IN";
 			ssd1306_SetCursor(0,0);
 			ssd1306_WriteString( mytext,Font_6x8,White);
 			ssd1306_SetCursor(0,11);
 			ssd1306_WriteString( mytext1,Font_6x8,White);
 			ssd1306_SetCursor(0,24);
 			ssd1306_WriteString( mytext2,Font_6x8,White);
+//			ssd1306_SetCursor(0,36);
+//			ssd1306_WriteString( mytext3,Font_6x8,White);
 
 			ssd1306_Line(0, 9, 128, 9, White);
 			ssd1306_Line(0, 22, 128, 22, White);
+			ssd1306_Line(0, 35, 128, 35, White);
 
 			ssd1306_Line(22, 0, 22, 32, White);
 			ssd1306_Line(60, 0, 60, 32, White);
@@ -106,7 +109,6 @@ void oLed_Init(void)
 
 			  ssd1306_Init();
 			  ssd1306_test();
-
 		  }
 }
 

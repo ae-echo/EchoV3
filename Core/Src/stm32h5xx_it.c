@@ -57,7 +57,8 @@
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
 extern I2C_HandleTypeDef hi2c2;
-extern I3C_HandleTypeDef hi3c1;
+extern I2C_HandleTypeDef hi2c4;
+extern I2C_HandleTypeDef hi3c1;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef handle_GPDMA2_Channel0;
@@ -262,8 +263,6 @@ void TIM7_IRQHandler(void)
   /* USER CODE END TIM7_IRQn 1 */
 }
 
-
-
 /**
   * @brief This function handles USART1 global interrupt.
   */
@@ -305,7 +304,6 @@ void GPDMA2_Channel0_IRQHandler(void)
 
   /* USER CODE END GPDMA2_Channel0_IRQn 1 */
 }
-
 /**
   * @brief This function handles I3C1 event interrupt.
   */
@@ -333,6 +331,7 @@ void I3C1_ER_IRQHandler(void)
 
   /* USER CODE END I3C1_ER_IRQn 1 */
 }
+
 
 /* USER CODE BEGIN 1 */
 

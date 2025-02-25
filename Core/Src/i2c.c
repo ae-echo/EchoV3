@@ -5,34 +5,283 @@
  *      Author: Kim Min Ki
  */
 
+#include <Mcal/Inc/fmc.h>
+#include <Mcal/Inc/gpio.h>
+#include <i2c.h>
+#include <Mcal/Inc/uart.h>
 #include "main.h"
-#include "i2c.h"
-#include "gpio.h"
-#include "uart.h"
+#include "time.h"
+#include "common.h"
 #include "bsw_config.h"
+
+/* SW I2C pin */
+#define CH1_I2C_SCL(in)    GPIO_Write(GPIOE, GPIO_PIN_2, (GPIO_PinState)in)
+#define CH1_I2C_SDA(in)    GPIO_Write(GPIOE, GPIO_PIN_3, (GPIO_PinState)in)
+#define CH2_I2C_SCL(in)    GPIO_Write(GPIOE, GPIO_PIN_4, (GPIO_PinState)in)
+#define CH2_I2C_SDA(in)    GPIO_Write(GPIOE, GPIO_PIN_5, (GPIO_PinState)in)
+
+#define SDA_H			I2C_Port.pPort->BSRR = I2C_Port.SDA
+#define SDA_L			I2C_Port.pPort->BSRR = (I2C_Port.SDA << 16)
+#define	SCL_H			I2C_Port.pPort->BSRR = I2C_Port.SCL
+#define SCL_L			I2C_Port.pPort->BSRR = (I2C_Port.SCL << 16)
+
+#define SDA(in)	I2C_Port.pPort->BSRR = (in) ? I2C_Port.SDA : I2C_Port.SDA << 16
+#define SCL(in)	I2C_Port.pPort->BSRR = (in) ? I2C_Port.SCL : I2C_Port.SCL << 16
+
+#define I2C_ACK_BIT	(I2C_Port.pPort->IDR & I2C_Port.SDA) ? 0 : 1
+#define I2C_DAT_BIT	(I2C_Port.pPort->IDR & I2C_Port.SDA) ? 1 : 0
+
 
 I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c4;
+struct I2C_PortSet		I2C_Port;
 
-//struct I2C_PortSet		I2C_Port;
-struct I2C_Irq_Buf	    I2C_Buf;
 
-uint8_t LastTransferDirection = 0; // 마지막 전송 방향 저장 변수
 
-void I2C_Init(void)
+uint32_t I2C_GPIO_Write_Func(uint8_t Addr, uint8_t* pData, uint16_t size, uint32_t tmout, int pDataOffset)
 {
-    I2C_Buf.TxCnt = 255;
-    for(int i = 0; i<255; i++)
+    uint32_t i, tmp;
+    uint32_t ack;
+
+    // Start
+    SDA(0);
+    delay_i2c(tmout);     // 100ns
+    ack = 0;
+	tmp = Addr;
+    SCL(0);
+
+    // Start Addr
+    for(i=0; i<8; i++)
     {
-        I2C_Buf.TxBuf[i] = i;
+    	I2C_Port.pPort->BSRR  =  (Addr & 0x80) ? I2C_Port.SDA : (I2C_Port.SDA << 16);			// Check point
+
+		SDA((tmp & 0x80) ? 1 : 0);
+		delay_i2c(tmout);
+		SCL(1);
+		delay_i2c(tmout);
+		SCL(0);
+		tmp <<= 1;
     }
 
-    if (HAL_I2C_EnableListen_IT(&hi2c2) != HAL_OK)
+    // ACK Event
+    delay_i2c(tmout); /*hold margin*/
+	SDA(1); /*Set High-z*/
+	delay_i2c(tmout);
+	SCL(1);
+	SCL(1);
+	delay_i2c(tmout);
+	ack = (I2C_Port.pPort->IDR & I2C_Port.SDA) ? 1 : 0;
+	SCL(0);
+	delay_i2c(tmout);
+
+    while(size > 0)
     {
-        Error_Handler();
+        //tmp = (*pData++);
+		tmp = *pData;
+		pData = pData + pDataOffset;
+
+        for(i=0; i<8; i++)
+        {
+			SDA((tmp & 0x80) ? 1 : 0);
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			SCL(0);
+			tmp <<= 1;
+        }
+        size--;
+
+        //ACK Event
+        delay_i2c(tmout);	/*hold margin*/
+		SDA(1);
+		delay_i2c(tmout);
+		SCL(1);
+		delay_i2c(tmout);
+		SCL(0);
     }
+
+    // Stop
+	SDA(0);
+	delay_i2c(tmout);
+	SCL(1);
+	delay_i2c(tmout);
+	SDA(1);
+
+    return ack;
 }
+uint32_t I2C_GPIO_Read_Func(uint8_t Addr, uint8_t* pData, uint16_t size, uint32_t tmout, int pDataOffset)
+{
+	uint32_t ack;
+	uint32_t i, tmp;
 
+	// Start
+	SDA(0);
+	delay_i2c(tmout);
+	ack = 0;
+	tmp = Addr;
+	SCL(0);
+
+	for(i=0; i<8; i++)
+	{
+		SDA((tmp & 0x80) ? 1 : 0);
+		delay_i2c(tmout);
+		SCL(1);
+		delay_i2c(tmout);
+		SCL(0);
+		tmp <<= 1;
+	}
+
+	// ACK Event
+	delay_i2c(tmout); /*hold margin*/
+	SDA(1);
+	delay_i2c(tmout);
+	SCL(1);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	ack = (I2C_Port.pPort->IDR & I2C_Port.SDA) ? 1 : 0;
+	SCL(0);
+	tmp = 0;
+
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+
+	while(size)
+	{
+		for(i=0; i<8; i++)
+		{
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			tmp |= I2C_DAT_BIT;
+			SCL(0);
+			if(i < 7) tmp <<= 1;
+		}
+
+		*pData = tmp;
+		pData = pData + pDataOffset;
+		tmp = 0;
+		size--;
+
+		delay_i2c(tmout);
+		if(size)
+		{
+			SDA(0);
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			SCL(0);
+			__asm volatile("NOP");
+			SDA(1);
+			__asm volatile("NOP");
+		}
+		else
+		{
+			// NoACK Event
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			SCL(0);
+		}
+	}
+
+	// Stop
+	SDA(0);
+	delay_i2c(tmout);
+	SCL(1);
+	delay_i2c(tmout);
+	SDA(1);
+	return ack;
+}
+uint32_t I2C_GPIO_Read_SDRAM(uint8_t Addr, uint16_t size, uint32_t tmout, int pDataOffset)
+{
+	uint32_t ack;
+	uint32_t i, tmp;
+	int Count = 0;
+
+	// Start
+	SDA(0);
+	delay_i2c(tmout);
+	ack = 0;
+	tmp = Addr;
+	SCL(0);
+
+	for(i=0; i<8; i++)
+	{
+		SDA((tmp & 0x80) ? 1 : 0);
+		delay_i2c(tmout);
+		SCL(1);
+		delay_i2c(tmout);
+		SCL(0);
+		tmp <<= 1;
+	}
+
+	// ACK Event
+	delay_i2c(tmout); /*hold margin*/
+	SDA(1);
+	delay_i2c(tmout);
+	SCL(1);
+	delay_i2c(tmout);
+	ack = (I2C_Port.pPort->IDR & I2C_Port.SDA) ? 1 : 0;
+	SCL(0);
+	tmp = 0;
+
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+	delay_i2c(tmout);
+
+	while(size)
+	{
+		for(i=0; i<8; i++)
+		{
+			delay_i2c(tmout);
+						SCL(1);
+						delay_i2c(tmout);
+						tmp |= I2C_DAT_BIT;
+						SCL(0);
+			if(i < 7) tmp <<= 1;
+		}
+
+		FMC_Write(FMC_SDRAM_BLOCK_0 + Count++, 1, (u8*)&tmp);
+		tmp = 0;
+		size--;
+
+		delay_i2c(tmout);
+		if(size)
+		{
+			SDA(0);
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			SCL(0);
+			__asm volatile("NOP");
+			SDA(1);
+			__asm volatile("NOP");
+		}
+		else
+		{
+			// NoACK Event
+			delay_i2c(tmout);
+			SCL(1);
+			delay_i2c(tmout);
+			SCL(0);
+		}
+	}
+
+	// Stop
+	SDA(0);
+	delay_i2c(tmout);
+	SCL(1);
+	delay_i2c(tmout);
+	SDA(1);
+	return ack;
+}
 
 
 /**
@@ -106,7 +355,7 @@ void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0x00C035A6;//0x00C035A6;//0x60808CD3;
+  hi2c4.Init.Timing = 0x60808CD3;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -144,7 +393,6 @@ void MX_I2C4_Init(void)
 * @param hi2c: I2C handle pointer
 * @retval None
 */
-
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -208,8 +456,8 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     PD13     ------> I2C4_SDA
     */
     GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C4;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -305,92 +553,4 @@ void I2C2_ER_IRQHandler(void)
   /* USER CODE END I2C2_ER_IRQn 1 */
 }
 
-void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-}
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-}
-
-void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-
-	if (hi2c->Instance == I2C2)
-    {
-		I2C_Buf.RegAddr = I2C_Buf.RxBuf[0];
-        memset(I2C_Buf.RxBuf, 0, sizeof(I2C_Buf.RxBuf));
-
-        HAL_I2C_EnableListen_IT(hi2c);
-    }
-}
-
-void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
-{
-
-    if (hi2c->Instance == I2C2)
-    {
-        if (AddrMatchCode != hi2c->Init.OwnAddress1)
-        {
-            // 잘못된 주소 요청 → NACK 전송
-            hi2c->Instance->CR2 |= I2C_CR2_NACK;
-            return;
-        }
-
-        // 마지막 전송 방향 저장
-        LastTransferDirection = TransferDirection;
-
-        // 기존 처리 로직...
-        if (TransferDirection == I2C_DIRECTION_TRANSMIT) // Master가 Write 요청
-        {
-            HAL_I2C_Slave_Seq_Receive_IT(hi2c, I2C_Buf.RxBuf, sizeof(I2C_Buf.RxBuf), I2C_NEXT_FRAME);
-        }
-        else if (TransferDirection == I2C_DIRECTION_RECEIVE) // Master가 Read 요청
-        {
-            HAL_I2C_Slave_Seq_Transmit_IT(hi2c, &I2C_Buf.TxBuf[I2C_Buf.RegAddr], sizeof(I2C_Buf.TxBuf), I2C_NEXT_FRAME);
-        }
-    }
-}
-
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
-{
-	HAL_I2C_EnableListen_IT(hi2c);
-}
-
-/*
- *
-void SET_I2C_Speed(void)
-{
-
-}
-
-void SW_I2C_Read(void)
-{
-
-}
-
-void SW_I2C_Write(void)
-{
-
-}
-
-void HW_I2C_Write(void)
-{
-
-	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
-}
-
-void HW_I2C_Read(void)
-{
-	//HAL_I2C_Master_Transmit_IT(&hi2c1,20,TX_Buffer,1);
-	//HAL_I2C_Master_Receive_IT(&hi2c, DevAddress, pData, Size);
-	//HAL_I2C_Master_Receive_IT(hi2c, DevAddress, pData, Size);
-	//HAL_I2C_Slave_Receive_IT(&hi2c1 ,(uint8_t *)RX_Buffer, 1);
-}
-
-
-
-
- *
- *
- * */

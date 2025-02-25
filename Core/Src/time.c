@@ -6,24 +6,11 @@
  */
 
 #include "time.h"
-#include "gpio.h"
 
 
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 
-/**
-  * @brief TIM6 Initialization Function
-  * @param None
-  * @retval None
-  */
-
-void delay_us(volatile uint32_t delay)
-{
-  for (volatile int i = 0; i < delay; i++)
-    for (volatile int j = 0; j < 25; j++)
-      ;
-}
 
 void MX_TIM6_Init(void)
 {
@@ -98,24 +85,6 @@ void MX_TIM7_Init(void)
 
 
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    if (htim->Instance == TIM7) //
-    {
-    	//LED2_TOG;
-    	 //GPIO_Toggle(PORT_A, GPIO_PIN_11);
-        //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // GPIO
-
-    }
-    if (htim->Instance == TIM6) //
-	{
-
-    	//GPIO_Toggle(GPIO_GetPort(PORT_A), GPIO_PIN_12);
-	    LED1_TOG;
-		//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12); // GPIO
-
-	}
-}
 
 
 /**

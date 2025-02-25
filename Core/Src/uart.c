@@ -8,67 +8,13 @@
 
 
 #include "main.h"
-#include "gpio.h"
-#include "fmc.h"
-#include "uart.h"
-#include "hw_Test_Com.h"
-
-uart uart1;  // usart1
-uart uart5;  // uart5
-
-uint8_t g_uartRxBuffer;
+#include <uart.h>
 
 UART_HandleTypeDef huart5;  // debug
 UART_HandleTypeDef huart1;  // usb
 
 DMA_HandleTypeDef handle_GPDMA2_Channel0;
 DMA_HandleTypeDef handle_GPDMA1_Channel0;
-
-
-void UART1_Init(void)
-{
-	uart1.Status = UART1_BUF_EMPTY;
-	uart1.Count = 0;
-	uart1.Mode = UART1_CMD_RECV;
-	uart1.ExtCount = 0;
-	uart1.ExtSize = 0;
-
-	g_uartRxBuffer = 0;
-
-	memset(&uart1.Buf, 0x00, sizeof(uart1.Buf));
-	uart1.pExtBuf = NULL;
-
-	HAL_UART_Receive_IT(&huart1, &g_uartRxBuffer, 1);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-
-	if(uart1.Mode == UART1_CMD_RECV)
-	{
-		if(huart1.RxState == HAL_UART_STATE_READY)
-		{
-			uart1.Buf[uart1.Count++] = g_uartRxBuffer;
-
-			if(uart1.Count >= UART1_PACKET_SIZE)
-			{
-				uart1.Status = UART1_BUF_FULL;
-				uart1.Count = 0;
-			}
-
-			HAL_UART_Receive_IT(&huart1, &g_uartRxBuffer, 1);
-		}
-	}
-	else if(uart1.Mode == UART1_EXT_RECV)
-	{
-		if(huart1.RxState == HAL_UART_STATE_READY)
-		{
-			uart1.Status = UART1_BUF_FULL;
-			uart1.ExtCount = 0;
-		}
-		HAL_UART_Receive_IT(&huart1, &g_uartRxBuffer, 1);
-	}
-}
 
 
 /**
@@ -223,7 +169,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   }
 
 }
-
 
 /**
 * @brief UART MSP Initialization

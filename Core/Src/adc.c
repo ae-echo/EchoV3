@@ -5,11 +5,10 @@
  *      Author: Kim Min Ki
  */
 
-#include "adc.h"
+#include <adc.h>
 
 
 ADC_HandleTypeDef hadc1;
-
 
 /**
   * @brief ADC1 Initialization Function
@@ -56,7 +55,7 @@ void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_24CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -73,17 +72,7 @@ void MX_ADC1_Init(void)
 
 }
 
-uint32_t ADC_Get_ADC(uint16_t* adcDelay)
-{
 
-	  uint32_t value ;
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, adcDelay);
-	  value = HAL_ADC_GetValue(&hadc1);
-	  HAL_ADC_Stop(&hadc1);
-	  return  value;
-
-}
 
 /**
 * @brief ADC MSP Initialization

@@ -6,62 +6,7 @@
  */
 
 
-#include "gpio.h"
-
-
-
-
-uint8_t GPIO_GetOutputState(GPIO_TypeDef *port, uint16_t pin)
-{
-
-    return (port->ODR & pin) ? 1 : 0;
-}
-
-
-
-GPIO_State GPIO_Read(GPIO_Port *port, uint16_t pin)
-{
-    GPIO_PinState halState = HAL_GPIO_ReadPin(port, pin);
-    return (GPIO_State)halState;
-
-
-}
-
-void GPIO_Write(GPIO_Port *port, uint16_t pin, GPIO_State state)
-{
-    HAL_GPIO_WritePin(port, pin, (state == GPIO_HIGH) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
-void GPIO_Toggle(GPIO_Port* port, uint16_t pin)
-{
-
-        HAL_GPIO_TogglePin(port, pin);
-
-}
-
-
-
-
-GPIO_Port* GPIO_GetPort(GPIO_PortName portName) {
-    switch (portName) {
-        case PORT_A:
-            return GPIOA;
-        case PORT_B:
-            return GPIOB;
-        case PORT_C:
-            return GPIOC;
-        case PORT_D:
-            return GPIOD;
-        case PORT_E:
-            return GPIOE;
-        case PORT_F:
-            return GPIOF;
-        case PORT_G:
-            return GPIOG;
-        default:
-            return NULL; // 잘못된 포트 입력 시 NULL 반환
-    }
-}
+#include <gpio.h>
 
 
 /**

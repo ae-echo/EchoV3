@@ -6,45 +6,14 @@
  */
 
 
-#include "fmc.h"
-
+#include <fmc.h>
 
 SDRAM_HandleTypeDef hsdram2;
 FMC_SDRAM_CommandTypeDef command;
-
-/*
-
-uint32_t sdram_address = 0xD0000000;
-uint32_t sdram_address1= 0xD0000004;
-uint32_t sdram_address2= 0xD0000008;
-uint32_t write_data = 10;
-uint32_t write_data1 = 11;
-uint32_t write_data2 = 13;
-
-    *(__IO uint32_t *)(sdram_address) = write_data;
-     *(__IO uint32_t *)(sdram_address1) = write_data1;
-     *(__IO uint32_t *)(sdram_address2) = write_data2;
-
-     read_data = *(__IO uint32_t *)(sdram_address);
-     read_data = *(__IO uint32_t *)(sdram_address1);
-     read_data = *(__IO uint32_t *)(sdram_address2);
-*/
-
-/* FMC initialization function */
+static uint32_t FMC_Initialized = 0;
+static uint32_t FMC_DeInitialized = 0;
 
 
-
-void Wirte_SDRAM_32bit(uint32_t write_data,uint32_t sdram_address)
-{
-	*(__IO uint32_t *)(sdram_address)=write_data;
-}
-
-uint32_t Read_SDRAM_32bit(uint32_t sdram_address)
-{
-	uint32_t read_data;
-	read_data = *(__IO uint32_t *)(sdram_address);
-	return read_data;
-}
 
 void MX_FMC_Init(void)
 {
@@ -148,10 +117,6 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_Comman
 
 
 }
-
-
-
-static uint32_t FMC_Initialized = 0;
 
 void HAL_FMC_MspInit(void){
   /* USER CODE BEGIN FMC_MspInit 0 */
@@ -276,14 +241,12 @@ void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef* hsdram){
   /* USER CODE END SDRAM_MspInit 1 */
 }
 
-static uint32_t FMC_DeInitialized = 0;
-
 void HAL_FMC_MspDeInit(void){
   /* USER CODE BEGIN FMC_MspDeInit 0 */
 
   /* USER CODE END FMC_MspDeInit 0 */
   if (FMC_DeInitialized) {
-    return;
+	return;
   }
   FMC_DeInitialized = 1;
   /* Peripheral clock enable */

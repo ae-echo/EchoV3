@@ -19,11 +19,21 @@ float VoltageTable[STEPMAX] =
 		1.950812f,		2.004450f,		2.057702f,		2.110572f,		2.163064f,		2.215183f,		2.266931f,		2.318314f,
 		2.369334f,		2.419997f,		2.470305f,		2.520262f,		2.569872f,		2.619138f,		2.668065f,		2.716655f,
 		2.764912f,		2.812839f,		2.860441f,		2.907719f,		2.954678f,		3.001320f,		3.047649f,		3.093668f,
+		3.139381f,		3.184789f,		3.229896f,		3.274706f,		3.319220f,		3.363443f,
+};
+/*
+float VoltageTable[STEPMAX] =
+{
+		1.036453f,		1.096886f,		1.156859f,		1.216374f,		1.275439f,		1.334058f,		1.392235f,		1.449977f,
+		1.507287f,		1.564171f,		1.620634f,		1.676679f,		1.732313f,		1.787538f,		1.842360f,		1.896783f,
+		1.950812f,		2.004450f,		2.057702f,		2.110572f,		2.163064f,		2.215183f,		2.266931f,		2.318314f,
+		2.369334f,		2.419997f,		2.470305f,		2.520262f,		2.569872f,		2.619138f,		2.668065f,		2.716655f,
+		2.764912f,		2.812839f,		2.860441f,		2.907719f,		2.954678f,		3.001320f,		3.047649f,		3.093668f,
 		3.139381f,		3.184789f,		3.229896f,		3.274706f,		3.319220f,		3.363443f,		3.407376f,		3.451023f,
 		3.494386f,		3.537469f,		3.580273f,		3.622802f,		3.665059f,		3.707045f,		3.748763f,		3.790217f,
 		3.831408f,		3.872339f,		3.913012f,		3.953431f,		3.993596f,		4.033512f,		4.073179f,		4.112600f
 };
-
+*/
 
 /**
  * @brief  Voltage값을 입력 후 근사치의 Step값 리턴
@@ -65,7 +75,7 @@ float LDO_GetVoltage(uint8_t Step)
 	return Voltage;
 }
 
-void ldoEn(LDO_Select type, GPIO_State PinState)
+void ldoEn(LDO_Select type, GPIO_PinState PinState)
 {
 	switch (type)
 	{
@@ -87,7 +97,7 @@ void ldoEn(LDO_Select type, GPIO_State PinState)
 	}
 }
 
-void ldoCs(LDO_Select type, GPIO_State PinState)
+void ldoCs(LDO_Select type, GPIO_PinState PinState)
 {
 	switch (type)
 	{
@@ -109,7 +119,7 @@ void ldoCs(LDO_Select type, GPIO_State PinState)
 	}
 }
 
-void ldoUd(LDO_Select type, GPIO_State PinState)
+void ldoUd(LDO_Select type, GPIO_PinState PinState)
 {
 	 switch (type)
 	{
@@ -149,10 +159,11 @@ void LOD_SetVoltage(LDO_Select LDO, float Voltage)
 
 }
 
-void LDO_ControlMain(LDO_Select LDO,uint8_t Step)
+void LDO_ControlMain(LDO_Select LDO)
 {
-	LDO_controldown(LDO, STEPMAX);
-	LDO_controlup(LDO,Step);
+	LDO_controldown(LDO, 64);
+	//LDO_controlup(LDO,Step);
+	g_LDO_Selects[LDO] = 0;
 }
 
 void LDO_controldown(LDO_Select LDO, uint8_t Step) // odw MCP4011
@@ -161,19 +172,24 @@ void LDO_controldown(LDO_Select LDO, uint8_t Step) // odw MCP4011
 
 	ldoUd(LDO,1); // UD PIN HIGH
 	ldoCs(LDO,1); // CS PIN HIGH
-    delay_us(10);
+
+	HAL_Delay(3);
 
     ldoCs(LDO,0); // CS PIN LOW
-    delay_us(10);
+	delay_us(2);
 
     for (int i = 0; i < Step; i++)
     {
     	ldoUd(LDO,0); // UD PIN LOW
-        delay_us(10);
+    	delay_us(2);
 
         ldoUd(LDO,1);  // UD PIN HIGH
-        delay_us(10);
+        delay_us(2);
     }
+
+    delay_us(2);                          // DELAY
+    ldoCs(LDO,1); // CS PIN HIGH
+    delay_us(10);
 }
 
 
@@ -183,22 +199,24 @@ void LDO_controlup(LDO_Select LDO, uint8_t Step) // odw MCP4011
 
 	ldoCs(LDO,1);  	// CS PIN HI
 	ldoUd(LDO,0);	// UD PIN LOW
-    delay_us(10);
+
+	HAL_Delay(3);
 
     ldoCs(LDO,0); 	// CS PIN LOW
-    delay_us(10);
+	delay_us(2);
 
     for (int i = 0; i < Step; i++)
     {
     	ldoUd(LDO,1);	// UD PIN HIGH
-        delay_us(10);
+    	delay_us(2);
 
         ldoUd(LDO,0);	// UD PIN LOW
-        delay_us(10);
+        delay_us(2);
     }
 
-    delay_us(10);
+    delay_us(2);
     ldoCs(LDO,1); // CS PIN HIGH
+    delay_us(10);
 }
 
 
