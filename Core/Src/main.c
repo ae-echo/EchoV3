@@ -29,15 +29,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <MCAL/Inc/DAC.h>
-#include <MCAL/Inc/ADC.h>
-#include <MCAL/Inc/FLASH.h>
-#include <MCAL/Inc/GPIO.h>
-#include <MCAL/Inc/I2C.h>
-#include <MCAL/Inc/I3C.h>
-#include <MCAL/Inc/TIME.h>
-#include <MCAL/Inc/UART.h>
-#include <MCAL/Inc/FMC.h>
+#include <MCAL/Inc/MCAL_Common.h>
+
 
 #include "ldo.h"
 
@@ -115,21 +108,13 @@ int main(void) {
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
-	GPIO_Init();
+	MCAL_Init();
 	MX_GPDMA1_Init();
 	MX_GPDMA2_Init();
 	MX_DCACHE1_Init();
-	MX_USART1_UART_Init();
-	ADC_Init();
-	DAC_Init();
-	Time_init();
-	MX_UART5_Init();
 	MX_ICACHE_Init();
-	MX_FMC_Init();
 	/* USER CODE BEGIN 2 */
 
-	I2C_Init();
-	UART_Init();
 
 //  LDO_controldown(I3C_REF_PW,64);
 //  LDO_controlup(I3C_REF_PW,33) ;
@@ -143,24 +128,20 @@ int main(void) {
 	LOD_SetVoltage(SW_I2C_REF_PW_CH1, 2.8);
 	LDO_ControlMain(SW_I2C_REF_PW_CH2);
 	LOD_SetVoltage(SW_I2C_REF_PW_CH2, 2.8);
-	PRINTF(("ECHO V3 TestCode\n"));
 	//CH1_I3C_SEL(1); //I2C MODE
 
-	I3C_Init(); // the init need to set  LDO_controldown(5,64); LDO_controlup(5,33) ;  with  delay
+
+	oLed_Init();  // you need to keep this logic
 
 	HAL_TIM_Base_Start_IT(&htim7);
 	HAL_TIM_Base_Start_IT(&htim6);
 
-	CH1_I3C_SEL(1); //I3C MODE
-	CH1_I2C_SEL(1); //BYPASS DISABLE
-
-	oLed_Init();  // you need to keep this logic
-
-	I2C_SetChannel(I2C_CH1, I2C_1M);
 	int presstime = 1500;
 	int step = 2;
 //  uint8_t Addr, Data;
 //  uint32_t nAck;
+	PRINTF("ECHO V3 TestCode\n");
+	I3C_SetChannel(I3C_CH1);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -185,9 +166,7 @@ int main(void) {
 				uint16_t data;
 
 				if (step == 0) {
-					CH1_I3C_SEL(0); //I2C MODE
-					CH1_I2C_SEL(1); //BYPASS DISABLE
-					HAL_Delay(10);
+
 
 					PRINTF("I3C Mode Change!\n");
 

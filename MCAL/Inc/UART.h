@@ -1,11 +1,8 @@
 #ifndef INC_UART_H_
 #define INC_UART_H_
 
-#include "main.h"
+#include <MCAL/Inc/MCAL_Common.h>
 #include <uart.h>
-#include "bsw_config.h"
-#include <fmc.h>
-#include <gpio.h>
 
 /* USER CODE BEGIN Private defines */
 
@@ -13,6 +10,8 @@
 #define UART1_BUF_EMPTY			0
 #define UART1_BUF_FULL			1
 #define UART1_EXT_BUF_FULL		2
+
+#define PRINTF(fmt, ...) UARTx_Printf(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 
 typedef enum {
@@ -28,7 +27,7 @@ enum UART1_MODE
 };
 
 
-typedef struct
+struct uart
 {
 	uint32_t Status;
 	uint32_t Mode;
@@ -39,13 +38,14 @@ typedef struct
 	uint32_t ExtSize;
     uint8_t* pExtBuf;
 
-}uart;
+};
 
 
 
 extern uint8_t g_uartRxBuffer;
-extern uart uart1;  // usart1
-extern uart uart5;  // uart5
+extern struct uart uart1;  // usart1
+extern struct uart uart5;  // uart5
+extern bool g_print_debug;
 
 /**
  * @brief  UART1 초기화 함수
@@ -91,7 +91,8 @@ void UART1_SetExtSend(void);
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
-
+//int UARTx_Printf(const char *fmt, ...);
+int UARTx_Printf(const char *file, int line, const char *fmt, ...);
 
 
 #endif /* INC_UART_H_ */

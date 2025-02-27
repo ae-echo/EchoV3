@@ -1,7 +1,7 @@
 #ifndef INC_DAC_H_
 #define INC_DAC_H_
 
-#include "main.h"
+#include <MCAL/Inc/MCAL_Common.h>
 #include <dac.h>
 
 #define FRA_CH_A		1

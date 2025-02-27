@@ -1,11 +1,8 @@
 #ifndef INC_I3C_H_
 #define INC_I3C_H_
 
-#include "main.h"
+#include <MCAL/Inc/MCAL_Common.h>
 #include <i3c.h>
-#include <stdbool.h>
-#include "common.h"
-
 
 #define _I2C_MODE_ false
 #define _I3C_MODE_ true
@@ -35,9 +32,24 @@ typedef enum {
 static const uint8_t DW9785_payload[8] = {0x05, 0x44, 0x00, 0x00, 0x00, 0x00, 0x06, 0xE4};
 static const uint8_t DW97xx_payload[8] = {0x05, 0x44, 0x00, 0x00, 0x00, 0x00, 0x06, 0xE5};
 
+/* I2C Channel */
+enum I3C_Num
+{
+	I3C_OFF = 0,
+	I3C_CH1 = 1,
+	I3C_CH2
+};
+
 extern I3C_HandleTypeDef hi3c1;
 
 void I3C_Init(void);
+
+/**
+ * @brief  I3C 채널 설정
+ *         - 지정된 I3C 채널 핀 설정
+ * @param  i2c_ch    I2C 채널 (I3C_CH1 또는 I3C_CH2)\
+ */
+void I3C_SetChannel(uint8_t i3c_ch);
 
 /**
  * @brief   I3C RSTDAA (Reset Dynamic Address Assignment) 명령 실행

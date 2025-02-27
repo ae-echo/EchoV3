@@ -19,12 +19,35 @@ I3C_PrivateTypeDef aPrivateDescriptor[1] =
 /* I3C ENTDAA Variable */
 uint64_t targetPayload;
 
-void MX_I3C1_Init(void);
 void I3C_SetContext(I3C_XferTypeDef* context, I3C_PrivateTypeDef* desc, uint8_t* txBuf, uint8_t* rxBuf, uint16_t size, uint8_t addr, uint8_t dir);
 uint8_t isPayloadMatched(const uint8_t* refPayload);
+
 void I3C_Init(void)
 {
 	MX_I3C1_Init();
+}
+
+/**
+ * @brief  I3C 채널 설정
+ *         - 지정된 I3C 채널 핀 설정
+ * @param  i2c_ch    I2C 채널 (I3C_CH1 또는 I3C_CH2)\
+ */
+void I3C_SetChannel(uint8_t i3c_ch)
+{
+	if(i3c_ch == I3C_CH1)
+	{
+		CH1_I2C_SEL(1);		// CH1 BYPASS DISABLE
+		CH1_I3C_SEL(1);		// CH1 I3C MODE
+		CH2_I2C_SEL(1);		// CH2 BYPASS DISABLE
+		CH2_I3C_SEL(0);		// CH2 I2C MODE
+	}
+	else if(i3c_ch == I3C_CH2)
+	{
+		CH1_I2C_SEL(1);		// CH1 BYPASS DISABLE
+		CH1_I3C_SEL(0);		// CH1 I2C MODE
+		CH2_I2C_SEL(1);		// CH2 BYPASS DISABLE
+		CH2_I3C_SEL(1);		// CH2 I3C MODE
+	}
 }
 
 /**

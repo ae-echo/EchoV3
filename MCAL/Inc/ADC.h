@@ -1,7 +1,7 @@
 #ifndef INC_ADC_H_
 #define INC_ADC_H_
 
-#include "main.h"
+#include <MCAL/Inc/MCAL_Common.h>
 #include <adc.h>
 
 void ADC_Init(void);

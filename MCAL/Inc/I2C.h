@@ -1,10 +1,8 @@
 #ifndef INC_I2C_H_
 #define INC_I2C_H_
 
+#include <MCAL/Inc/MCAL_Common.h>
 #include <i2c.h>
-#include "common.h"
-#include <string.h>
-#include "bsw_config.h"
 
 #define BOARD_SLAVE_ID  			0x24
 

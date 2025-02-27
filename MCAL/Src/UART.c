@@ -1,9 +1,12 @@
 #include <MCAL/Inc/UART.h>
 
-uart uart1;  // usart1
-uart uart5;  // uart5
+struct uart uart1;  // usart1
+struct uart uart5;  // uart5
 
 uint8_t g_uartRxBuffer;
+bool g_print_debug;
+
+void UART1_Init(void);
 
 void UART_Init(void)
 {
@@ -31,6 +34,8 @@ void UART1_Init(void)
 
 	HAL_UART_Receive_IT(&huart1, &g_uartRxBuffer, 1);
 }
+
+
 
 /**
  * @brief  UART1 정보 반환 함수
@@ -118,4 +123,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
+int UARTx_Printf(const char *file, int line, const char *fmt, ...)
+
+{
+	g_print_debug = 1;
+
+	if (g_print_debug)
+	{
+		va_list args;
+		char buffer[256];
+
+		va_start(args, fmt);
+		vsnprintf(buffer, sizeof(buffer), fmt, args);
+		va_end(args);
+
+		// 파일명과 라인번호를 추가하여 출력
+		char logBuffer[300];
+		snprintf(logBuffer, sizeof(logBuffer), "[%s:%d] %s", file, line, buffer);
+
+		HAL_UART_Transmit(&huart5, (uint8_t*)logBuffer, strlen(logBuffer), HAL_MAX_DELAY);
+	}
+    return 0;
+}
 

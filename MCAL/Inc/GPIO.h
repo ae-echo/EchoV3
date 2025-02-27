@@ -1,8 +1,8 @@
 #ifndef INC_GPIO_H_
 #define INC_GPIO_H_
 
+#include <MCAL/Inc/MCAL_Common.h>
 #include <gpio.h>
-#include "main.h"
 
 /* --- LED Control defines ---------------------- */
 #define LED1_ON		GPIO_Write(GPIOA, GPIO_PIN_12, GPIO_PIN_SET)

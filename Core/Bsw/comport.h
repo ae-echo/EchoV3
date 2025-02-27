@@ -8,6 +8,8 @@
 #ifndef BSW_COMPORT_H_
 #define BSW_COMPORT_H_
 
+#include "stdbool.h"
+
 struct ComPacket
 {
 	uint8_t Start;

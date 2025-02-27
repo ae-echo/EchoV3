@@ -40,12 +40,18 @@ void I2C_SetChannel(uint8_t i2c_ch, enum I2C_Speed speed)
 		/* I2C Pin, SW Set ---------- */
 		I2C_Port.SDA = I2C1_SDA_Pin;
 		I2C_Port.SCL = I2C1_SCL_Pin;
+
+		CH1_I2C_SEL(1);		// BYPASS DISABLE
+		CH1_I3C_SEL(0);		// I2C MODE
 	}
 	else if(i2c_ch == I2C_CH2)
 	{
 		/* I2C Pin, SW Set ---------- */
 		I2C_Port.SDA = I2C2_SDA_Pin;
 		I2C_Port.SCL = I2C2_SCL_Pin;
+
+		CH2_I2C_SEL(1);		// BYPASS DISABLE
+		CH2_I3C_SEL(0);		// I2C MODE
 	}
 
     I2C_SetSpeed(speed);

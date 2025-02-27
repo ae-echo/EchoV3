@@ -1,9 +1,7 @@
 #ifndef INC_FLASH_H_
 #define INC_FLASH_H_
 
-#include "main.h"
-#include "bsw_config.h"
-#include <string.h>
+#include <MCAL/Inc/MCAL_Common.h>
 
 /**
  * @brief  128-bit (16바이트) 데이터를 Flash에서 읽어 DataBuffer에 저장하는 매크로

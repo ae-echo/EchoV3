@@ -1,10 +1,8 @@
 #ifndef INC_TIME_H_
 #define INC_TIME_H_
 
-#include "main.h"
+#include <MCAL/Inc/MCAL_Common.h>
 #include <time.h>
-#include <MCAL/Inc/GPIO.h>
-#include <i3c.h>
 
 void Time_init(void);
 
