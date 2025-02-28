@@ -246,37 +246,62 @@ uint32_t I3C_SETDASA(uint8_t targetAddr, uint8_t dynAddr)
 
 /**
  * @brief  I3C Private Read (8비트 주소 체계)
- *         - 특정 ID의 I3C 장치에서 지정된 크기(size)만큼 데이터를 읽음
- * @param  id    대상 I3C 장치 주소
- * @param  addr  8비트 레지스터 주소
- * @param  dat   읽은 데이터를 저장할 버퍼 포인터
- * @param  size  읽을 데이터 크기
- * @return I3C 에러 코드 (HAL_I3C_ERROR_* 매크로 사용)
+ *         - 지정된 I3C 장치에서 특정 레지스터 주소(addr)부터 size만큼 데이터를 읽음
+ * @param  id    대상 I3C 장치의 8비트 주소 (7비트 ID 변환됨)
+ * @param  addr  읽을 레지스터의 8비트 주소
+ * @param  dat   읽은 데이터를 저장할 버퍼 (포인터)
+ * @param  size  읽을 데이터의 크기 (바이트 단위)
+ * @return I3C 에러 코드 (성공 시 HAL_I3C_ERROR_NONE)
+ *
+ * @note   1. 먼저 8비트 주소(addr)를 전송하여 읽기 대상 레지스터를 지정함
+ *         2. 이후 해당 장치에서 size만큼 데이터를 읽어 dat 버퍼에 저장함
+ *         3. 비동기 전송을 사용하며, 완료될 때까지 HAL_I3C_STATE_READY 상태를 확인함
  */
 uint32_t I3C_Read(uint8_t id, uint8_t addr, uint8_t* dat, uint16_t size)
 {
-	uint8_t deviceAddr = id >> 1;  // ID 7-bit 변환
+    uint8_t deviceAddr = id >> 1;  // ID 7-bit 변환
 
     /* 유효성 검사 */
     if (size == 0 || dat == NULL)
         return HAL_I3C_ERROR_INVALID_PARAM;
 
-    /* Write 설정 (레지스터 주소 전송) */
-	aTxBuffer[0] = addr;
-	I3C_SetContext(&aContextBuffers[0], &aPrivateDescriptor[0], aTxBuffer, NULL, 1, deviceAddr, HAL_I3C_DIRECTION_WRITE);
+    /* Write 설정 (8bit 주소 전송) */
+    aTxBuffer[0] = addr;  // 8bit 주소만 전송
 
-    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0], &aContextBuffers[0], aContextBuffers[0].CtrlBuf.Size, I3C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
+    aContextBuffers[0].CtrlBuf.pBuffer = aControlBuffer;
+    aContextBuffers[0].CtrlBuf.Size = 1;
+    aContextBuffers[0].TxBuf.pBuffer = aTxBuffer;
+    aContextBuffers[0].TxBuf.Size = 1;  // 8bit addr 전송
+
+    aPrivateDescriptor[0].TargetAddr = deviceAddr;
+    aPrivateDescriptor[0].TxBuf.pBuffer = aTxBuffer;
+    aPrivateDescriptor[0].TxBuf.Size = 1;
+    aPrivateDescriptor[0].Direction = HAL_I3C_DIRECTION_WRITE;
+
+    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0],
+                               &aContextBuffers[0], aContextBuffers[0].CtrlBuf.Size,
+                               I3C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
         return HAL_I3C_ERROR_INVALID_PARAM;
 
-	if (HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aContextBuffers[0]) != HAL_OK)
-		return HAL_I3C_ERROR_NOT_ALLOWED;
+    if (HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aContextBuffers[0]) != HAL_OK)
+        return HAL_I3C_ERROR_NOT_ALLOWED;
 
-	while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY);
+    while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY);
 
-    /* Read 설정 */
-    I3C_SetContext(&aContextBuffers[0], &aPrivateDescriptor[0], NULL, dat, size, deviceAddr, HAL_I3C_DIRECTION_READ);
+    /* Read 설정 (`size` 만큼 데이터 수신) */
+    aContextBuffers[0].CtrlBuf.pBuffer = aControlBuffer;
+    aContextBuffers[0].CtrlBuf.Size = 1;
+    aContextBuffers[0].RxBuf.pBuffer = dat;
+    aContextBuffers[0].RxBuf.Size = size;  // size 바이트 읽기
 
-    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0], &aContextBuffers[0], 1, I3C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
+    aPrivateDescriptor[0].TargetAddr = deviceAddr;
+    aPrivateDescriptor[0].RxBuf.pBuffer = dat;
+    aPrivateDescriptor[0].RxBuf.Size = size;
+    aPrivateDescriptor[0].Direction = HAL_I3C_DIRECTION_READ;
+
+    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0],
+                               &aContextBuffers[0], aContextBuffers[0].CtrlBuf.Size,
+                               I3C_PRIVATE_WITHOUT_ARB_STOP) != HAL_OK)
         return HAL_I3C_ERROR_INVALID_PARAM;
 
     if (HAL_I3C_Ctrl_Receive_IT(&hi3c1, &aContextBuffers[0]) != HAL_OK)
@@ -336,31 +361,52 @@ uint32_t I3C_Read_16BIT(uint8_t id, uint16_t addr, uint16_t* dat, uint16_t size)
 
 /**
  * @brief  I3C Private Write (데이터 전송)
- *         - 특정 ID의 I3C 장치로 지정된 크기(size)만큼 데이터를 전송
- * @param  id    대상 I3C 장치 주소 (7-bit 변환됨)
- * @param  dat   전송할 데이터 버퍼 포인터
- * @param  size  전송할 데이터 크기 (BYTE 단위)
- * @return I3C 에러 코드 (HAL_I3C_ERROR_* 매크로 사용)
+ *         - 지정된 I3C 장치로 특정 레지스터 주소(addr)부터 size만큼 데이터를 전송
+ * @param  id    대상 I3C 장치의 8비트 주소 (7비트 ID 변환됨)
+ * @param  addr  데이터를 전송할 레지스터의 8비트 주소
+ * @param  data  전송할 데이터 버퍼 (포인터)
+ * @param  size  전송할 데이터 크기 (바이트 단위)
+ * @return I3C 에러 코드 (성공 시 HAL_I3C_ERROR_NONE)
+ *
+ * @note   1. 8비트 주소(addr)를 먼저 전송하여 대상 레지스터를 지정
+ *         2. 이후 데이터(data)를 연속 전송
+ *         3. 비동기 전송을 사용하며, 완료될 때까지 HAL_I3C_STATE_READY 상태를 확인
  */
-uint32_t I3C_Write(uint8_t id, uint8_t *dat, uint16_t size)
+uint32_t I3C_Write(uint8_t id, uint8_t addr, uint8_t* data, uint16_t size)
 {
     uint8_t deviceAddr = id >> 1;  // ID 7-bit 변환
 
     /* 유효성 검사 */
-    if (size == 0 || dat == NULL)
+    if (size == 0 || data == NULL)
         return HAL_I3C_ERROR_INVALID_PARAM;
 
+	//use I3C_IDX_FRAME_1
+    /* addr(1바이트) + data(1바이트) 저장 버퍼 준비 */
+    uint8_t aTxBuffer[1 + size];
+    aTxBuffer[0] = addr;             // 8bit 주소 저장
+    memcpy(&aTxBuffer[1], data, size); // 이후 데이터 복사
+
     /* Context & Descriptor 설정 */
-    I3C_SetContext(&aContextBuffers[0], &aPrivateDescriptor[0], dat, NULL, size, deviceAddr, HAL_I3C_DIRECTION_WRITE);
+    aContextBuffers[0].CtrlBuf.pBuffer = aControlBuffer;
+    aContextBuffers[0].CtrlBuf.Size = 1;
+    aContextBuffers[0].TxBuf.pBuffer = aTxBuffer;
+    aContextBuffers[0].TxBuf.Size = 1 + size;  // addr(1B) + data(size)
+
+    aPrivateDescriptor[0].TargetAddr = deviceAddr;
+    aPrivateDescriptor[0].TxBuf.pBuffer = aTxBuffer;
+    aPrivateDescriptor[0].TxBuf.Size = 1 + size;
+    aPrivateDescriptor[0].Direction = HAL_I3C_DIRECTION_WRITE;
 
     /* I3C 전송 설정 및 실행 */
-    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0], &aContextBuffers[0], 1, I3C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
+    if (HAL_I3C_AddDescToFrame(&hi3c1, NULL, &aPrivateDescriptor[0],
+                               &aContextBuffers[0], aContextBuffers[0].CtrlBuf.Size,
+                               I3C_PRIVATE_WITHOUT_ARB_RESTART) != HAL_OK)
         return HAL_I3C_ERROR_INVALID_PARAM;
 
     if (HAL_I3C_Ctrl_Transmit_IT(&hi3c1, &aContextBuffers[0]) != HAL_OK)
         return HAL_I3C_ERROR_NOT_ALLOWED;
 
-    while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY);
+    while (HAL_I3C_GetState(&hi3c1) != HAL_I3C_STATE_READY) {}
 
     return hi3c1.ErrorCode;  // 에러 코드 반환
 }

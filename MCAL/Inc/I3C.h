@@ -110,7 +110,7 @@ uint32_t I3C_Read_16BIT(uint8_t id, uint16_t addr, uint16_t* dat, uint16_t size)
  * @param  size  전송할 데이터 크기 (BYTE 단위)
  * @return I3C 에러 코드 (HAL_I3C_ERROR_* 매크로 사용)
  */
-uint32_t I3C_Write(uint8_t id, uint8_t *dat, uint16_t size);
+uint32_t I3C_Write(uint8_t id, uint8_t addr, uint8_t* data, uint16_t size);
 
 /**
  * @brief  I3C Private Write (16비트 주소 + 16비트 데이터 전송)

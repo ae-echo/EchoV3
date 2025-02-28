@@ -16,6 +16,11 @@ void I2C_Init(void)
 
 	memset(&I2C_Buf, 0x00, sizeof(struct I2C_Irq_Buf));		// I2C Reg Buffer Init
 
+	for(int i = 0; i<256; i++)
+	{
+		I2C_Buf.TxBuf[i] = i;
+	}
+
     if (HAL_I2C_EnableListen_IT(&hi2c2) != HAL_OK)
     {
         Error_Handler();
@@ -100,7 +105,7 @@ uint32_t I2C_Write_16BIT(uint8_t Device, uint16_t Addr, uint16_t* pData, uint16_
 
 		ret = I2C_GPIO_Write_Func(Device, tBuf, 4, I2C_Port.Speed, sizeof(uint8_t));
 	}
-	PRINTF("I2C Write %.4X %.4X \r\n", Addr, pData[0]);
+	//PRINTF("I2C Write %.4X %.4X \r\n", Addr, pData[0]);
 
 	return ret;
 }
@@ -299,19 +304,27 @@ void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 }
 
+int cnt=0;
 void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
 {
     if (hi2c->Instance == I2C2)
     {
-        if (hi2c->XferSize == 1)
+    	int recvCnt = sizeof(I2C_Buf.TxBuf) - hi2c->XferSize;
+
+        if (recvCnt == 1) // 마스터측 Read Reg
         {
             // Read 요청을 위한 Register Address 설정 단계
             I2C_Buf.RegAddr = I2C_Buf.RxBuf[0];
+			I2C_Buf.Direction = I2C_SLAVE_READY;
         }
-        else if (hi2c->XferSize > 1)
+        else if (I2C_Buf.Direction == I2C_SLAVE_SEND) // 마스터측 전송 완료
         {
             // Write 요청: Master가 데이터를 보낸 경우
             //memcpy(&I2C_Buf.TxBuf[I2C_Buf.RegAddr], &I2C_Buf.RxBuf[1], hi2c->XferSize - 1);
+
+			MCAL_PRINTF("0x%.2X\n",I2C_Buf.RxBuf[0]);
+			MCAL_PRINTF("0x%.2X\n",I2C_Buf.RxBuf[1]);
+			I2C_Buf.Direction = I2C_SLAVE_READY;
         }
 
         // Read 완료 후 Listen 모드 재진입
@@ -336,6 +349,7 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
         // 기존 처리 로직...
         if (TransferDirection == I2C_DIRECTION_TRANSMIT) // Master가 Write 요청
         {
+        	I2C_Buf.Direction = I2C_SLAVE_SEND;
             HAL_I2C_Slave_Seq_Receive_IT(hi2c, I2C_Buf.RxBuf, sizeof(I2C_Buf.RxBuf), I2C_NEXT_FRAME);
         }
         else if (TransferDirection == I2C_DIRECTION_RECEIVE) // Master가 Read 요청

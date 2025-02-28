@@ -14,7 +14,7 @@ uint32_t FMC_Read(uint32_t Offset, uint32_t Size, uint8_t* pBuf)
 
 	for(i = 0; i < Size; i++)
 	{
-		Data = *(__IO uint32_t*)(Address+ i);                    // Read 32bit Data
+		Data = *(__IO uint32_t*)(Address+ (i * 4));                    // Read 32bit Data
         //PRINTF(("FMC Read Addr %.8X Data %.8X \r\n", (Address+i), Data));
 
 		pBuf[i] = (uint8_t)Data;
@@ -33,7 +33,7 @@ uint32_t FMC_Write(uint32_t Offset, uint32_t Size, uint8_t* pBuf)
 	for(i = 0; i < Size; i++)
 	{
 		Data = (uint32_t) (pBuf[i]);
-		*(__IO uint32_t*)(Address + i) = Data;
+		*(__IO uint32_t*)(Address + (i * 4)) = Data;
 		//PRINTF(("FMC Write Addr %.8X Data %.8X \r\n", (Address+i), Data));
 	}
 

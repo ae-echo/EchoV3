@@ -42,14 +42,30 @@ void MX_FMC_Init(void)
   hsdram2.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
   hsdram2.Init.ReadBurst = FMC_SDRAM_RBURST_DISABLE;
   hsdram2.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
-  /* SdramTiming */
-  SdramTiming.LoadToActiveDelay = 2;
-  SdramTiming.ExitSelfRefreshDelay = 9;
-  SdramTiming.SelfRefreshTime = 5;
-  SdramTiming.RowCycleDelay = 8;
-  SdramTiming.WriteRecoveryTime = 2;
-  SdramTiming.RPDelay = 2;
-  SdramTiming.RCDDelay = 2;
+
+
+
+	/* Timing configuration for 125 MHz of SD clock frequency (250MHz/2) */
+	/* TMRD: 3 Clock cycles (기존 2 × 11.90ns / 8ns ≈ 3) */
+	SdramTiming.LoadToActiveDelay    = 3;
+
+	/* TXSR: min=70ns (기존 6 × 11.90ns → 10 × 8ns) */
+	SdramTiming.ExitSelfRefreshDelay = 10;
+
+	/* TRAS: min=42ns (기존 4 × 11.90ns → 6 × 8ns), max=120k (ns) */
+	SdramTiming.SelfRefreshTime      = 6;
+
+	/* TRC: min=63ns (기존 6 × 11.90ns → 10 × 8ns) */
+	SdramTiming.RowCycleDelay        = 10;
+
+	/* TWR:  2 Clock cycles (그대로 유지) */
+	SdramTiming.WriteRecoveryTime    = 2;
+
+	/* TRP:  15ns → 기존 2 × 11.90ns → 2 × 8ns (큰 차이 없음) */
+	SdramTiming.RPDelay              = 2;
+
+	/* TRCD: 15ns → 기존 2 × 11.90ns → 2 × 8ns (큰 차이 없음) */
+	SdramTiming.RCDDelay             = 2;
 
   if (HAL_SDRAM_Init(&hsdram2, &SdramTiming) != HAL_OK)
   {

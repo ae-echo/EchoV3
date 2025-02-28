@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <MCAL/Inc/MCAL_Common.h>
+#include <TEST.h>
 
 
 #include "ldo.h"
@@ -108,11 +109,11 @@ int main(void) {
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
-	MCAL_Init();
 	MX_GPDMA1_Init();
 	MX_GPDMA2_Init();
 	MX_DCACHE1_Init();
 	MX_ICACHE_Init();
+	MCAL_Init();
 	/* USER CODE BEGIN 2 */
 
 
@@ -136,14 +137,9 @@ int main(void) {
 	HAL_TIM_Base_Start_IT(&htim7);
 	HAL_TIM_Base_Start_IT(&htim6);
 
-	int presstime = 1500;
-	int step = 2;
-//  uint8_t Addr, Data;
-//  uint32_t nAck;
-	PRINTF("ECHO V3 TestCode\n");
-	I3C_SetChannel(I3C_CH1);
-	/* USER CODE END 2 */
+	PRINTF("ECHO V3 TEST CODE\n");
 
+	/* USER CODE END 2 */
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
@@ -151,92 +147,8 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 
-		HAL_Delay(100);
-
-		static uint32_t pressStartTime = 0;
-		static uint8_t isPressed = 0;
-
-		if (USER_KEY == BUTTON_PRESSED) {
-			if (!isPressed) { // 처음 눌렸을 때
-				pressStartTime = HAL_GetTick(); // 현재 시간 저장
-				isPressed = 1;
-			} else if ((HAL_GetTick() - pressStartTime) >= presstime) {
-				// 2초 이상 눌렸다면 동작 수행
-				PRINTF("KEYPRESS!\n");
-				uint16_t data;
-
-				if (step == 0) {
-
-
-					PRINTF("I3C Mode Change!\n");
-
-//	        	// I3C mode Change
-//				data=0x0001;
-//				I2C_Write_16BIT(0x48, 0xD02B, &data, 1);
-//				delay_ms(10);
-//
-//				// Auto Hot-Join Disable
-//				data=0x0000;
-//				i3c_write(0x48, 0xD02C, &data, 1);
-//				delay_ms(10);
-//
-//				//LDT ProTect OFF
-//				data=0xCADD;
-//				I2C_Write_16BIT(0x48, 0xDE93, &data, 1);
-//				delay_ms(10);
-//
-//				//Store
-//				data=0x0004;
-//				I2C_Write_16BIT(0x48, 0xD012, &data, 1);
-//				delay_ms(10);
-//
-//				//LDT ProTect ON
-//				data=0x0000;
-//				I2C_Write_16BIT(0x48, 0xDE93, &data, 1);	//LDT1 ON
-//				delay_ms(10);
-//
-//				//Reset DW9785
-//				data=0x0001;
-//				I2C_Write_16BIT(0x48, 0xD002, &data, 1);
-//				delay_ms(10);
-//
-//				data=0x0003;
-//				I2C_Write_16BIT(0x48, 0xDD03, &data, 1);
-//				delay_ms(10);
-//
-//				data=0x0003;
-//				I2C_Write_16BIT(0x48, 0xDD04, &data, 1);
-//				delay_ms(10);
-					step++;
-				} else if (step == 1) {
-					PRINTF("RSTDAA!\n");
-					CH1_I3C_SEL(1);
-					delay_ms(10);
-
-					I3C_RSTDAA(_I3C_MODE_);
-					//I3C_Send_RSTDAA();
-					step = 2;
-				} else if (step == 2) {
-					PRINTF("ENTDAA!\n");
-					delay_ms(10);
-					//TEMP_I3C_SETDASA();
-					I3C_RSTDAA(_I2C_MODE_);
-					I3C_SETDASA(0xD4, 0x32);
-					//TEMP_I3C_ENTDAA(0x32);
-					step = 3;
-				} else if (step == 3) {
-					PRINTF("I3C READ!\n");
-					uint8_t data[6];
-					I3C_Read(0x64, 0x01, data, 1);
-					PRINTF("0x%x\n", data[0]);
-					PRINTF("0x%x\n", data[1]);
-					step = 1;
-				}
-				isPressed = 0; // 다시 눌릴 때까지 대기
-			}
-		} else {
-			isPressed = 0; // 버튼이 떼어졌을 때 리셋
-		}
+		HAL_Delay(1);
+		Function_Test();
 
 	}
 	/* USER CODE END 3 */

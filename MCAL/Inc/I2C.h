@@ -35,6 +35,9 @@
 #define I2C2_SCL_Pin GPIO_PIN_4
 #define I2C2_SDA_Pin GPIO_PIN_5
 
+#define I2C_SLAVE_READY		0
+#define I2C_SLAVE_SEND		1
+
 /* I2C Channel */
 enum I2C_Num
 {
@@ -62,6 +65,7 @@ struct I2C_Irq_Buf
 	uint8_t TxBuf[255];
 	uint8_t RxCnt;
 	uint8_t TxCnt;
+	uint8_t Direction;
 };
 
 
